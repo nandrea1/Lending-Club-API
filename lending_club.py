@@ -2,6 +2,7 @@ import requests
 import settings
 import json
 import logging
+from datetime import date
 
 class LendingClub():
 
@@ -12,6 +13,15 @@ class LendingClub():
 	lc_loans_url = settings.lc_loans_url
 	header_map = {'json':'application/json', 'csv':'text/plain', 'xml':'application/xml'}
 	headers = {'Authorization':''}
+	
+	transfer_frequencies={
+	'now':'LOAD_NOW',
+	'once':'LOAD_ONCE',
+	'weekly':'LOAD_WEEKLY',
+	'biweekly':'LOAD_BIWEEKLY',
+	'bimonthly': 'LOAD_ON_DAY_1_AND_16',
+	'monthly': 'LOAD_MONTHLY'
+	}
 	
 	def __init__(self,authorization, investor_id, logger=''):
 		self.auth = authorization
@@ -40,7 +50,7 @@ class LendingClub():
 		headers = self.headers
 		self.logger.debug('Headers Are: ' + str(headers))
 		self.logger.debug('Data is: ' + str(data))
-		resp = requests.post(url, data=data, headers=headers, verify=False)
+		resp = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
 		self.logger.debug('Lending Club Response is: ' + str(resp.text))
 		return resp
 		
@@ -99,4 +109,38 @@ class LendingClub():
 		resp = self._postLCRequest('/portfolios', req)
 		resp_obj = resp.json()
 		return resp_obj
+		
+	def transferFunds(self, amount, frequency, start_date=date.today(), end_date=''):
+		self.logger.debug('Creating Transfer for %s with frequency of %s starting on %s' %(amount, frequency, start_date))
+		req = {}
+		req['investorId'] = self.investor_id
+		req['amount'] = amount
+		req['transferFrequency']=self.transfer_frequencies[frequency]
+		if self.transfer_frequencies[frequency] != 'LOAD_NOW':
+			req['startDate'] = start_date
+		if self.transfer_frequencies[frequency] != 'LOAD_NOW' and self.transfer_frequencies[frequency] != 'LOAD_ONCE':
+			req['endDate'] = end_date
+		resp = self._postLCRequest('/funds/add', req)
+		resp_obj = resp.json()
+		return resp_obj
+		
+	def cancelTransfer(self, transfer_ids):
+		self.logger.debug('Cancelling transfer ids %s' %(transfer_ids))
+		req={}
+		req['investorId'] = self.investor_id
+		req['transferId'] = transfer_ids
+		resp = self._postLCRequest('/funds/cancel', req)
+		resp_obj = resp.json()
+		return resp_obj
+	
+	def submitOrder(self, orders):
+		self.logger.debug('Submitted %s orders for processing' % (len(orders)))
+		req = {}
+		req['aid'] = self.investor_id
+		req['orders'] = orders
+		resp = self._postLCRequest('/orders', req)
+		resp_obj = resp.json()
+		return resp_obj
+		
+	
 		

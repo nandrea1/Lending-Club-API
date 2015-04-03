@@ -1,6 +1,6 @@
 #from lc_models import Loan
 from lending_club import LendingClub
-from datetime import datetime
+from datetime import datetime, date
 '''
 def createSampleLoan():
 	loan = Loan()
@@ -40,5 +40,18 @@ def createPortfolio(lc):
 	portfolio_name = 'Test Automated Portfolio'
 	portfolio_description = 'This is a test portfolio created by the python api'
 	resp = lc.createPortfolio(portfolio_name=portfolio_name, portfolio_description=portfolio_description)
+	assert resp['portfolioId'] > 0
 	
-	
+def transferFundsNow(lc):
+	amt = 1
+	frequency = 'now'
+	resp = lc.transferFunds(amt, frequency)
+	assert resp['estimatedFundsTransferDate'] != None and resp['estimatedFundsTransferDate'] != ""
+
+def transferFundsMonthly(lc):
+	amt =1
+	frequency = 'monthly'
+	start_date = date(2015, 4, 15).strftime('%Y-%m-%d')
+	resp = lc.transferFunds(amt, frequency, start_date)
+	assert resp['estimatedFundsTransferDate'] != None and resp['estimatedFundsTransferDate'] != ""
+

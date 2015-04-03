@@ -98,6 +98,13 @@ class Loan(BaseModel):
 			last_prin = flow.eop_principal
 			flows.append(flow)
 		return flows
+		
+	def order(self, amt, portfolio=''):
+		order = {}
+		order['loanId'] = self.loan_id
+		order['requestedAmount'] = amt
+		order['portfolioId'] = portfolio
+		return order
 			
 
 
