@@ -6,7 +6,22 @@ import date_util
 import logging
 logger = logging.getLogger('peewee')
 logger.setLevel(settings.log_level)
-logger.addHandler(logging.StreamHandler())
+#logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler(settings.log_name)
+fh.setLevel(settings.log_level)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(settings.log_level)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(module)s - %(funcName)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+logger.info('Log Level is: %s' % (settings.log_level))
+
 
 env_string = 'dev'
 env = settings.env[env_string]
@@ -21,6 +36,21 @@ db_name = env['db_name']
 
 
 db=''
+
+logger.debug('DB Type is: %s' % (db_type))
+logger.debug('DB Host is: %s' % (db_host))
+logger.debug('DB Port is: %s' % (db_port))
+logger.debug('DB User is: %s' % (db_user))
+logger.debug('DB Name is: %s' % (db_name))
+
+if db_type == 'mysql':	
+	logger.debug('Connecting to MySQL DB ' + db_name + ' on host ' + str(db_host) + ' and port ' + str(db_port) + '. Username is ' + db_user + ' Password is ' + db_pword)
+	db = MySQLDatabase(db_name, host=db_host, port=db_port, user=db_user, passwd=db_pword)
+else:
+	logger.debug('Database Type of ' + str(db_type) + ' Not Configured!')
+	#raise Exception
+
+
 
 class BaseModel(Model):
 	class Meta:
@@ -117,6 +147,7 @@ class LoanCashflow(BaseModel):
 	fee_paid=FloatField()
 	due_amt=FloatField()
 	rec_amt=FloatField()
+	due_date=DateField()
 	rec_date=DateField()
 	days_late=IntegerField()
 	eop_status=CharField()
@@ -126,16 +157,8 @@ class LoanCashflow(BaseModel):
 	co=FloatField()
 	co_amt=FloatField()
 	
-
-if db_type == 'mysql':	
-	logging.debug('Connecting to MySQL DB ' + db_name + ' on host ' + str(db_host) + ' and port ' + str(db_port) + '. Username is ' + db_user + ' Password is ' + db_pword)
-	db = MySQLDatabase(db_name, host=db_host, port=db_port, user=db_user, passwd=db_pword)
-else:
-	logging.exception('Database Type of ' + str(db_type) + ' Not Configured!')
-	#raise Exception
 try:
 	db.create_tables([Loan, LoanCashflow])
-except:
-	print('Cannot Create Tables')
-	
+except InternalError:
+	logging.info('Tables Already Exist')
 	pass
