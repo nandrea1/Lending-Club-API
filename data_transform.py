@@ -21,7 +21,7 @@ fields = ['LOAN_ID','PBAL_BEG_PERIOD', 'PRNCP_PAID',
 
 
 		
-def _getLoanFromFile(file):
+def _getLoanFromHistoryFile(file):
 	loan = ''
 	with open(pmt_file, 'r') as f:
 		reader = csv.DictReader(f)
