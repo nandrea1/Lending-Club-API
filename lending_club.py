@@ -86,9 +86,9 @@ class LendingClub():
 		resp_obj = resp.json()
 		return resp_obj
 		
-	def getListedLoans(self, response_type='json'):
+	def getListedLoans(self, response_type='json', show_all=True):
 		self.logger.debug('Getting Listed Loans')
-		url = self.lc_loans_url + 'listing'
+		url = self.lc_loans_url + 'listing?showAll=' + str(show_all)
 		self.logger.debug('Request URL is ' + url)
 		self.headers['Content-Type'] = self.header_map[response_type]
 		headers = self.headers
